@@ -1,0 +1,271 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(TriviaQuizApp());
+}
+
+class TriviaQuizApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Trivia Quiz',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const MainScreen(),
+    );
+  }
+}
+
+class MainScreen extends StatefulWidget {
+  const MainScreen({Key? key}) : super(key: key);
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _pages = [
+    const HomeScreen(),
+    const QuizScreen(),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.quiz),
+            label: 'Quiz',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Home'),
+        centerTitle: true,
+      ),
+      body: Center(
+        child: Text(
+          'Welcome to Trivia Quiz!',
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+}
+
+class QuizScreen extends StatefulWidget {
+  const QuizScreen({Key? key}) : super(key: key);
+
+  @override
+  State<QuizScreen> createState() => _QuizScreenState();
+}
+
+class _QuizScreenState extends State<QuizScreen> {
+  final List<Map<String, Object>> _questions = [
+    {
+      'question': 'What is the capital of France?',
+      'answers': ['Berlin', 'Madrid', 'Paris', 'Lisbon'],
+      'correctAnswer': 'Paris',
+    },
+    {
+      'question': 'Which planet is known as the Red Planet?',
+      'answers': ['Earth', 'Mars', 'Venus', 'Jupiter'],
+      'correctAnswer': 'Mars',
+    },
+    {
+      'question': 'What is 5 + 3?',
+      'answers': ['5', '8', '9', '10'],
+      'correctAnswer': '8',
+    },
+  ];
+
+  int _currentQuestionIndex = 0;
+  int _score = 0;
+
+  void _answerQuestion(String selectedAnswer) {
+    if (_questions[_currentQuestionIndex]['correctAnswer'] == selectedAnswer) {
+      setState(() {
+        _score++;
+      });
+    }
+
+    if (_currentQuestionIndex < _questions.length - 1) {
+      setState(() {
+        _currentQuestionIndex++;
+      });
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ResultScreen(
+            score: _score,
+            total: _questions.length,
+            restartQuiz: _restartQuiz,
+          ),
+        ),
+      );
+    }
+  }
+
+  void _restartQuiz() {
+    setState(() {
+      _currentQuestionIndex = 0;
+      _score = 0;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentQuestion = _questions[_currentQuestionIndex];
+    final progress = (_currentQuestionIndex + 1) / _questions.length;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Trivia Quiz'),
+        centerTitle: true,
+      ),
+      body: Column(
+        children: [
+          LinearProgressIndicator(
+            value: progress,
+            color: Colors.blue,
+            backgroundColor: Colors.grey[300],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Question ${_currentQuestionIndex + 1} of ${_questions.length}',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                Chip(
+                  label: Text(
+                    'Score: $_score',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  backgroundColor: Colors.blue,
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Card(
+              margin: const EdgeInsets.all(16.0),
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      currentQuestion['question'] as String,
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    ...(currentQuestion['answers'] as List<String>).map((answer) {
+                      return Container(
+                        margin: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                            backgroundColor: Colors.blue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () => _answerQuestion(answer),
+                          child: Text(
+                            answer,
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ResultScreen extends StatelessWidget {
+  final int score;
+  final int total;
+  final VoidCallback restartQuiz;
+
+  const ResultScreen({
+    Key? key,
+    required this.score,
+    required this.total,
+    required this.restartQuiz,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Quiz Results'),
+        centerTitle: true,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Your Score: $score / $total',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () {
+                restartQuiz();
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.restart_alt),
+              label: const Text('Restart Quiz'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

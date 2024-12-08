@@ -1,0 +1,21 @@
+import 'package:flutter/material.dart';
+
+
+    
+  // The entry point of the Dart application
+void main() {
+  print('Hello, Dart!'); 
+
+  // Calling other functions or using variables
+  String message = greet('Dart Developer');
+  print(message);
+}
+
+// A simple function that returns a greeting message
+String greet(String name) {
+  return 'Hello, $name!';
+}
+
+}
+ ),
+);
